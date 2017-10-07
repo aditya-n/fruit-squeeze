@@ -197,23 +197,39 @@ public class homework {
         return resultedMove;
     }
 
-    public MoveToPassUpstream playTurn(int playerTurn, String board, int score, int depth) {
+    public MoveToPassUpstream playTurn(int playerTurn, String board, int score, int depth, int alpha, int beta) {
         ArrayList<Integer> possibleMoves = generatePossibleMoves(board);
         if (possibleMoves.isEmpty() || depth == 5)
             return new MoveToPassUpstream(null, score);
         Integer bestScore, currentScore, scoreAfterMove, bestMove = null;
-        bestScore = playerTurn == 1 ? -1000 : 1000;
+        bestScore = playerTurn == 1 ? alpha : beta;
         for (int moveStartPosition : possibleMoves) {
             Move currentMove = performMove(moveStartPosition, board);
             scoreAfterMove = currentMove.fruitsConsumed * currentMove.fruitsConsumed * (playerTurn) + score;
-            currentScore = playTurn(-playerTurn, gravitateMatrix(currentMove.board), scoreAfterMove, depth+1).score;
+            if(playerTurn == 1)
+                currentScore = playTurn(-playerTurn, gravitateMatrix(currentMove.board),
+                            scoreAfterMove, depth+1, bestScore, beta).score;
+            else
+                currentScore = playTurn(-playerTurn, gravitateMatrix(currentMove.board),
+                        scoreAfterMove, depth+1, alpha, bestScore).score;
             if(depth == 1)
                 System.out.println(moveStartPosition +" position. sscore "+ currentScore);
             bestScore = updateBestScore(currentScore, bestScore, playerTurn);
             if(currentScore == bestScore)
                 bestMove = moveStartPosition;
+            if(checkWhetherToPrune(bestScore, alpha, beta, playerTurn))
+                return new MoveToPassUpstream(bestMove, playerTurn == 1 ? beta : alpha);
         }
         return new MoveToPassUpstream(bestMove, bestScore);
+    }
+
+    public boolean checkWhetherToPrune(Integer bestScore, int alpha, int beta, int playerTurn) {
+        if(playerTurn == 1)
+            if(bestScore >= beta)
+                return true;
+        else
+            if(alpha >= bestScore)
+                return true;
     }
 
     public void printMatrix(String board) {
