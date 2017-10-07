@@ -26,9 +26,12 @@ public class TestCases{
         hw.initializeDataMembers();
     }
     @Test
-    public void testConcatenate(){
-        String result = "one" + "two";
-        assertEquals("onetwo", result);
+    public void performMoveTest(){
+        hw.boardDimension = 3;
+        hw.boardSize = 9;
+        board = "*11133133";
+        board = hw.performMove( 1, board).board;
+        assertEquals("***133133", board);
     }
     @Test
     public void testgravityTranspose(){
@@ -43,20 +46,26 @@ public class TestCases{
         hw.boardDimension = 3;
         board = "*******0*";
         assertEquals((Arrays.asList(new Integer[]{7})), hw.generatePossibleMoves(board));
+        board = "*11133133";
+        assertEquals((Arrays.asList(new Integer[]{1, 3, 4})), hw.generatePossibleMoves(board));
     }
 
     @Test
-    public void checkTreeGenerationForMinMax(){
+    public void checkTreeGeneration(){
         hw.boardDimension = 2;
         hw.boardSize = 4;
-        move = hw.playTurn(1, "0121", 0, 1);
-        assertEquals(1, (int)move.position);
+        //move = hw.playTurn(1, "0121", 0, 1, Integer.MIN_VALUE, Integer.MAX_VALUE);
+        //assertEquals(1, (int)move.position);
         hw.boardDimension = 3;
         hw.boardSize = 9;
-        move = hw.playTurn(1, "*******0*", 0, 1);
+        move = hw.playTurn(1, "*******0*", 0, 1, Integer.MIN_VALUE, Integer.MAX_VALUE);
         assertEquals(7, (int)move.position);
-        move = hw.playTurn(1, "444444444", 0, 1);
+        move = hw.playTurn(1, "444444444", 0, 1, Integer.MIN_VALUE, Integer.MAX_VALUE);
         assertEquals(0, (int)move.position);
+        move = hw.playTurn(1, "0121", 0, 1, Integer.MIN_VALUE, Integer.MAX_VALUE);
+        assertEquals(0, (int)move.position);
+        move = hw.playTurn(1, "111133233", 0, 1, Integer.MIN_VALUE, Integer.MAX_VALUE);
+        assertEquals(4, (int)move.position);
     }
 
     @Test
@@ -68,7 +77,9 @@ public class TestCases{
         String board = "";
         for(int i=0; i<hw.boardDimension; i++)
             board += reader.readLine();
-        move = hw.playTurn(1, board, 0, 1);
-        assertEquals(0, (int)move.position);
+        move = hw.playTurn(1, board, 0, 0, Integer.MIN_VALUE, Integer.MAX_VALUE);
+        System.out.println("\n Leaf count is " + hw.leafCount + " Cuts " + hw.cuts);
+        System.out.println(" \n Move" + move.position + " " + move.score);
+        assertEquals(47, (int)move.position);
     }
 }

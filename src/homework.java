@@ -14,13 +14,12 @@ class Pair {
     int x, y;
 }
 
-class MoveToPassUpstream{
-    Integer position, score;
-
+class MoveToPassUpstream {
     public MoveToPassUpstream(Integer position, Integer score) {
         this.position = position;
         this.score = score;
     }
+    Integer position, score;
 }
 
 class Move {
@@ -90,41 +89,48 @@ public class homework {
 
     public static final int MAX = 1, MIN = -1;
     String board; // The main board denoting all the fruits
-    int boardDimension, typesOfFruits, boardSize;
+    int boardDimension, typesOfFruits, boardSize, leafCount = 0, cuts = 0;
     public HashMap<Move, Move> moveMap;
     String time;
 
-    public int addAdjacentPositions(Queue<Integer> possibleMoves, HashSet<Integer> visitedNodes, int currentPosition, StringBuilder boardBuilder) {
+    public int addAdjacentPositions(Queue<Integer> possibleNodes, HashSet<Integer> visitedNodes, int currentPosition, StringBuilder boardBuilder) {
         int left, right, up, down, boardSize = boardDimension * boardDimension, score = 0;
         left = currentPosition - 1;
         right = currentPosition + 1;
         up = currentPosition - boardDimension;
         down = currentPosition + boardDimension;
         if (0 <= up && up < boardSize && !visitedNodes.contains(up))
-            if (boardBuilder.charAt(up) == boardBuilder.charAt(currentPosition) && boardBuilder.charAt(up)!='*') {
-                possibleMoves.add(up);
+            if (boardBuilder.charAt(up) == boardBuilder.charAt(currentPosition) && boardBuilder.charAt(up) != '*') {
+                possibleNodes.add(up);
                 visitedNodes.add(up);
                 score++;
             }
         if (0 <= down && down < boardSize && !visitedNodes.contains(down))
-            if (boardBuilder.charAt(down) == boardBuilder.charAt(currentPosition) && boardBuilder.charAt(down)!='*') {
-                possibleMoves.add(down);
+            if (boardBuilder.charAt(down) == boardBuilder.charAt(currentPosition) && boardBuilder.charAt(down) != '*') {
+                possibleNodes.add(down);
                 visitedNodes.add(down);
                 score++;
             }
-        if (0 <= left && left < boardSize && !visitedNodes.contains(left))
-            if (boardBuilder.charAt(left) == boardBuilder.charAt(currentPosition) && boardBuilder.charAt(left)!='*') {
-                possibleMoves.add(left);
+        if (0 <= left && left < boardSize && !visitedNodes.contains(left) && (left % boardDimension != boardDimension - 1))
+            if (boardBuilder.charAt(left) == boardBuilder.charAt(currentPosition) && boardBuilder.charAt(left) != '*') {
+                possibleNodes.add(left);
                 visitedNodes.add(left);
                 score++;
             }
-        if (0 <= right && right < boardSize && !visitedNodes.contains(right))
-            if (boardBuilder.charAt(right) == boardBuilder.charAt(currentPosition) && boardBuilder.charAt(right)!='*') {
-                possibleMoves.add(right);
+        if (0 <= right && right < boardSize && !visitedNodes.contains(right) && (right % boardDimension != 0))
+            if (boardBuilder.charAt(right) == boardBuilder.charAt(currentPosition) && boardBuilder.charAt(right) != '*') {
+                possibleNodes.add(right);
                 visitedNodes.add(right);
                 score++;
             }
         return score;
+    }
+
+    public boolean checkWhetherToPrune(int alpha, int beta) {
+        if (alpha >= beta)
+            return true;
+        else
+            return false;
     }
 
     public ArrayList<Integer> generatePossibleMoves(String board) {
@@ -179,18 +185,18 @@ public class homework {
 
         int score = 0;
         StringBuilder boardBuilder = new StringBuilder(board);
-        Queue<Integer> possibleMoves = new ArrayDeque<>();
+        Queue<Integer> possibleNodes = new ArrayDeque<>();
         HashSet<Integer> visitedNodes = new HashSet<>();
 
-        possibleMoves.add(startPosition);
+        possibleNodes.add(startPosition);
         score++;
         visitedNodes.add(startPosition);
         int currentPosition;
-        while (!possibleMoves.isEmpty()) {
-            currentPosition = possibleMoves.element();
-            score += addAdjacentPositions(possibleMoves, visitedNodes, currentPosition, boardBuilder);
+        while (!possibleNodes.isEmpty()) {
+            currentPosition = possibleNodes.element();
+            score += addAdjacentPositions(possibleNodes, visitedNodes, currentPosition, boardBuilder);
             boardBuilder.setCharAt(currentPosition, '*');
-            possibleMoves.remove();
+            possibleNodes.remove();
         }
         resultedMove = new Move(startPosition, score, boardBuilder.toString());
         moveMap.put(move, resultedMove);
@@ -199,37 +205,33 @@ public class homework {
 
     public MoveToPassUpstream playTurn(int playerTurn, String board, int score, int depth, int alpha, int beta) {
         ArrayList<Integer> possibleMoves = generatePossibleMoves(board);
-        if (possibleMoves.isEmpty() || depth == 5)
+        if (possibleMoves.isEmpty() || depth == 5) {
+            //System.out.println("Leaf REached");
+            leafCount++;
             return new MoveToPassUpstream(null, score);
-        Integer bestScore, currentScore, scoreAfterMove, bestMove = null;
-        bestScore = playerTurn == 1 ? alpha : beta;
+        }
+
+        Integer currentScore, scoreAfterMove, bestMove = null;
         for (int moveStartPosition : possibleMoves) {
             Move currentMove = performMove(moveStartPosition, board);
             scoreAfterMove = currentMove.fruitsConsumed * currentMove.fruitsConsumed * (playerTurn) + score;
-            if(playerTurn == 1)
-                currentScore = playTurn(-playerTurn, gravitateMatrix(currentMove.board),
-                            scoreAfterMove, depth+1, bestScore, beta).score;
-            else
-                currentScore = playTurn(-playerTurn, gravitateMatrix(currentMove.board),
-                        scoreAfterMove, depth+1, alpha, bestScore).score;
-            if(depth == 1)
-                System.out.println(moveStartPosition +" position. sscore "+ currentScore);
-            bestScore = updateBestScore(currentScore, bestScore, playerTurn);
-            if(currentScore == bestScore)
+            currentScore = playTurn(-playerTurn, gravitateMatrix(currentMove.board),
+                    scoreAfterMove, depth + 1, alpha, beta).score;
+            if (depth == 1)
+                System.out.println(moveStartPosition + " position. sscore " + currentScore);
+            if (shouldUpdateBestScore(currentScore, alpha, beta, playerTurn)) {
                 bestMove = moveStartPosition;
-            if(checkWhetherToPrune(bestScore, alpha, beta, playerTurn))
+                if (playerTurn == 1)
+                    alpha = currentScore;
+                else
+                    beta = currentScore;
+            }
+            if (checkWhetherToPrune(alpha, beta)) {
+                cuts++;
                 return new MoveToPassUpstream(bestMove, playerTurn == 1 ? beta : alpha);
+            }
         }
-        return new MoveToPassUpstream(bestMove, bestScore);
-    }
-
-    public boolean checkWhetherToPrune(Integer bestScore, int alpha, int beta, int playerTurn) {
-        if(playerTurn == 1)
-            if(bestScore >= beta)
-                return true;
-        else
-            if(alpha >= bestScore)
-                return true;
+        return new MoveToPassUpstream(bestMove, playerTurn == 1 ? alpha : beta);
     }
 
     public void printMatrix(String board) {
@@ -238,6 +240,20 @@ public class homework {
             System.out.print(board.charAt(i));
             if (((i + 1) % boardDimension) == 0)
                 System.out.println();
+        }
+    }
+
+    public boolean shouldUpdateBestScore(int currentScore, int alpha, int beta, int playerTurn) {
+        if (playerTurn == 1) {
+            if (currentScore > alpha)
+                return true;
+            else
+                return false;
+        } else {
+            if (currentScore < beta)
+                return true;
+            else
+                return false;
         }
     }
 
@@ -250,17 +266,6 @@ public class homework {
                 stringArray[boardDimension * i + j] = temp;
             }
         return String.valueOf(stringArray);
-    }
-
-    public int updateBestScore(int currentScore, int bestScore, int playerTurn) {
-        if (playerTurn == 1) {
-            if (currentScore > bestScore)
-                bestScore = currentScore;
-        } else {
-            if (currentScore < bestScore)
-                bestScore = currentScore;
-        }
-        return bestScore;
     }
 
     public static void main(String[] args) throws IOException {
