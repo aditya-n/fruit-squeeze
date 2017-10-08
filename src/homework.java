@@ -4,21 +4,12 @@ import java.util.*;
 /**
  * Created by adi on 03/10/17.
  */
-
-class Pair {
-    public Pair(int x, int y) {
-        this.x = x;
-        this.y = y;
-    }
-
-    int x, y;
-}
-
 class MoveToPassUpstream {
     public MoveToPassUpstream(Integer position, Integer score) {
         this.position = position;
         this.score = score;
     }
+
     Integer position, score;
 }
 
@@ -133,15 +124,16 @@ public class homework {
             return false;
     }
 
-    public ArrayList<Integer> generatePossibleMoves(String board) {
-        ArrayList<Integer> possibleMoves = new ArrayList<>();
+    public TreeMap<Integer, Integer> generatePossibleMoves(String board) {
+        TreeMap<Integer, Integer> possibleMoveMap = new TreeMap<>();
         for (int i = 0; i < boardDimension; i++)
             for (int j = 0; j < boardDimension; j++) //TODO optimise when whole string is "******"
                 if (board.charAt(i * boardDimension + j) != '*') {
-                    board = performMove(i * boardDimension + j, board).board;
-                    possibleMoves.add(i * boardDimension + j);
+                    Move move = performMove(i * boardDimension + j, board);
+                    board = move.board;
+                    possibleMoveMap.put(move.fruitsConsumed, i * boardDimension + j);
                 }
-        return possibleMoves;
+        return possibleMoveMap;
     }
 
     public void getInputs() throws IOException {
@@ -204,15 +196,17 @@ public class homework {
     }
 
     public MoveToPassUpstream playTurn(int playerTurn, String board, int score, int depth, int alpha, int beta) {
-        ArrayList<Integer> possibleMoves = generatePossibleMoves(board);
-        if (possibleMoves.isEmpty() || depth == 5) {
+        int moveStartPosition;
+        TreeMap<Integer, Integer> possibleMoveMap = generatePossibleMoves(board);
+        if (possibleMoveMap.isEmpty() || depth == 8) {
             //System.out.println("Leaf REached");
             leafCount++;
             return new MoveToPassUpstream(null, score);
         }
 
         Integer currentScore, scoreAfterMove, bestMove = null;
-        for (int moveStartPosition : possibleMoves) {
+        for (Map.Entry<Integer, Integer> entry : possibleMoveMap.entrySet()) {
+            moveStartPosition = entry.getValue();
             Move currentMove = performMove(moveStartPosition, board);
             scoreAfterMove = currentMove.fruitsConsumed * currentMove.fruitsConsumed * (playerTurn) + score;
             currentScore = playTurn(-playerTurn, gravitateMatrix(currentMove.board),
