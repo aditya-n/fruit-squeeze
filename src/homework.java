@@ -5,22 +5,16 @@ import java.util.*;
  * Created by adi on 03/10/17.
  */
 class MoveToPassUpstream {
+    Integer position, score;
+
     public MoveToPassUpstream(Integer position, Integer score) {
         this.position = position;
         this.score = score;
     }
-
-    Integer position, score;
 }
 
 class Move {
-    public Move(int position, int fruitsConsumed, String board) {
-        this.position = position;
-        this.fruitsConsumed = fruitsConsumed;
-        this.board = board;
-    }
-
-    String board = "?";
+    String board = "?";  //TODO optimise String comparison in equals by storing string as hash(string)
     int position = -1, fruitsConsumed = -1;
 
     @Override
@@ -41,6 +35,12 @@ class Move {
         result = 31 * result + fruitsConsumed;
         result = 31 * result + (board != null ? board.hashCode() : 0);
         return result;
+    }
+
+    public Move(int position, int fruitsConsumed, String board) {
+        this.position = position;
+        this.fruitsConsumed = fruitsConsumed;
+        this.board = board;
     }
 }
 
@@ -73,15 +73,15 @@ class ObjectCloner {
             ois.close();
         }
     }
-
 }
 
 public class homework {
 
     public static final int MAX = 1, MIN = -1;
     String board; // The main board denoting all the fruits
-    int boardDimension, typesOfFruits, boardSize, leafCount = 0, cuts = 0;
+    int boardDimension, typesOfFruits, boardSize, leafCount = 0, cuts = 0, temp = 0;
     public HashMap<Move, Move> moveMap;
+    public HashMap<String, TreeMap> generatedPossibleMoves;
     String time;
 
     public int addAdjacentPositions(Queue<Integer> possibleNodes, HashSet<Integer> visitedNodes, int currentPosition, StringBuilder boardBuilder) {
@@ -117,22 +117,20 @@ public class homework {
         return score;
     }
 
-    public boolean checkWhetherToPrune(int alpha, int beta) {
-        if (alpha >= beta)
-            return true;
-        else
-            return false;
-    }
-
     public TreeMap<Integer, Integer> generatePossibleMoves(String board) {
-        TreeMap<Integer, Integer> possibleMoveMap = new TreeMap<>();
+        if(generatedPossibleMoves.containsKey(board)) // If computed before, return;
+            return generatedPossibleMoves.get(board);
+
+        TreeMap<Integer, Integer> possibleMoveMap = new TreeMap<>(Collections.reverseOrder());
         for (int i = 0; i < boardDimension; i++)
-            for (int j = 0; j < boardDimension; j++) //TODO optimise when whole string is "******"
+            for (int j = 0; j < boardDimension; j++){
                 if (board.charAt(i * boardDimension + j) != '*') {
                     Move move = performMove(i * boardDimension + j, board);
                     board = move.board;
                     possibleMoveMap.put(move.fruitsConsumed, i * boardDimension + j);
                 }
+            }
+        generatedPossibleMoves.put(board, possibleMoveMap);
         return possibleMoveMap;
     }
 
@@ -168,6 +166,7 @@ public class homework {
     public void initializeDataMembers() {
         boardSize = boardDimension * boardDimension;
         moveMap = new HashMap<>();
+        generatedPossibleMoves = new HashMap<>();
     }
 
     public Move performMove(int startPosition, String board) {
@@ -198,21 +197,19 @@ public class homework {
     public MoveToPassUpstream playTurn(int playerTurn, String board, int score, int depth, int alpha, int beta) {
         int moveStartPosition;
         TreeMap<Integer, Integer> possibleMoveMap = generatePossibleMoves(board);
-        if (possibleMoveMap.isEmpty() || depth == 8) {
-            //System.out.println("Leaf REached");
+        if (possibleMoveMap.isEmpty() || depth == 15) {  // Max depth reached or board is all *.
             leafCount++;
             return new MoveToPassUpstream(null, score);
         }
 
         Integer currentScore, scoreAfterMove, bestMove = null;
-        for (Map.Entry<Integer, Integer> entry : possibleMoveMap.entrySet()) {
-            moveStartPosition = entry.getValue();
+        Iterator<Map.Entry<Integer, Integer>> it = possibleMoveMap.entrySet().iterator();
+        while(it.hasNext()) {// for all possible moves on current board
+            moveStartPosition = (int) ((Map.Entry)it.next()).getValue();
             Move currentMove = performMove(moveStartPosition, board);
             scoreAfterMove = currentMove.fruitsConsumed * currentMove.fruitsConsumed * (playerTurn) + score;
-            currentScore = playTurn(-playerTurn, gravitateMatrix(currentMove.board),
+            currentScore = playTurn(-playerTurn, gravitateMatrix(currentMove.board),   // Recursive call for children
                     scoreAfterMove, depth + 1, alpha, beta).score;
-            if (depth == 1)
-                System.out.println(moveStartPosition + " position. sscore " + currentScore);
             if (shouldUpdateBestScore(currentScore, alpha, beta, playerTurn)) {
                 bestMove = moveStartPosition;
                 if (playerTurn == 1)
@@ -220,7 +217,12 @@ public class homework {
                 else
                     beta = currentScore;
             }
-            if (checkWhetherToPrune(alpha, beta)) {
+            if (alpha >= beta) { // PRUNE the rest in the for loop and in possibleMoveMap
+                while(it.hasNext()) {
+                    temp = (int) ((Map.Entry) it.next()).getKey();
+                    break;
+                }
+                possibleMoveMap.tailMap(temp).clear();
                 cuts++;
                 return new MoveToPassUpstream(bestMove, playerTurn == 1 ? beta : alpha);
             }
