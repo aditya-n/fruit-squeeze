@@ -197,7 +197,7 @@ public class homework {
     public MoveToPassUpstream playTurn(int playerTurn, String board, int score, int depth, int alpha, int beta) {
         int moveStartPosition;
         TreeMap<Integer, Integer> possibleMoveMap = generatePossibleMoves(board);
-        if (possibleMoveMap.isEmpty() || depth == 15) {  // Max depth reached or board is all *.
+        if (possibleMoveMap.isEmpty() || depth == 0) {  // Max depth reached or board is all *.
             leafCount++;
             return new MoveToPassUpstream(null, score);
         }
@@ -209,7 +209,7 @@ public class homework {
             Move currentMove = performMove(moveStartPosition, board);
             scoreAfterMove = currentMove.fruitsConsumed * currentMove.fruitsConsumed * (playerTurn) + score;
             currentScore = playTurn(-playerTurn, gravitateMatrix(currentMove.board),   // Recursive call for children
-                    scoreAfterMove, depth + 1, alpha, beta).score;
+                    scoreAfterMove, depth - 1, alpha, beta).score;
             if (shouldUpdateBestScore(currentScore, alpha, beta, playerTurn)) {
                 bestMove = moveStartPosition;
                 if (playerTurn == 1)
