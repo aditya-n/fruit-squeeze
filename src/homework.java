@@ -13,6 +13,20 @@ class MoveToPassUpstream {
     }
 }
 
+class ValueComparator implements Comparator<Integer>, Serializable{
+    HashMap<Integer, Integer> hashMap = new HashMap<>();
+    public ValueComparator(HashMap<Integer, Integer> hashMap) {
+        this.hashMap.putAll(hashMap);
+    }
+    @Override
+    public int compare(Integer x, Integer y){
+        if(this.hashMap.get(x) <= this.hashMap.get(y))
+            return 1;
+        else
+            return -1;
+    }
+}
+
 class Move {
     String board = "?";  //TODO optimise String comparison in equals by storing string as hash(string)
     int position = -1, fruitsConsumed = -1;
@@ -122,18 +136,31 @@ public class homework {
         if(generatedPossibleMoves.containsKey(board)) // If computed before, return;
             return generatedPossibleMoves.get(board);
 
-        TreeMap<Integer, Integer> possibleMoveMap = new TreeMap<>(Collections.reverseOrder());
+        TreeMap<Integer, Integer> sortedMapByValue = new TreeMap<>();
+        HashMap<Integer, Integer> possibleMoveMap = new HashMap<>();
         for (int i = 0; i < boardDimension; i++)
             for (int j = 0; j < boardDimension; j++){
                 if (board.charAt(i * boardDimension + j) != '*') {
                     Move move = performMove(i * boardDimension + j, board);
                     board = move.board;
-                    possibleMoveMap.put(move.fruitsConsumed, i * boardDimension + j); //TODO wrong map configuration entries get overwritten
+                    //possibleMoveMap.put(move.fruitsConsumed, i * boardDimension + j); //TODO wrong map configuration entries get overwritten
+                    possibleMoveMap.put(i * boardDimension + j, move.fruitsConsumed);
                 }
             }
-        generatedPossibleMoves.put(board, possibleMoveMap);
-        return possibleMoveMap;
+        // Sort possibleMoveMap based no. of fruitsConsumed
+        if(!possibleMoveMap.isEmpty())
+            sortedMapByValue = sortMapByValue(possibleMoveMap);
+        generatedPossibleMoves.put(board, sortedMapByValue);
+        return sortedMapByValue;
     }
+
+    private TreeMap<Integer,Integer> sortMapByValue(HashMap<Integer, Integer> possibleMoveMap) {
+        Comparator<Integer> comparator = new ValueComparator(possibleMoveMap);
+        TreeMap<Integer,Integer> sortedMap = new TreeMap(comparator);
+        sortedMap.putAll(possibleMoveMap);
+        return sortedMap;
+    }
+
 
     public void getInputs() throws IOException {
         absolutePath = new File("").getAbsolutePath();
@@ -213,7 +240,7 @@ public class homework {
         Integer currentScore, scoreAfterMove, bestMove = null;
         Iterator<Map.Entry<Integer, Integer>> it = possibleMoveMap.entrySet().iterator();
         while(it.hasNext()) {// for all possible moves on current board
-            moveStartPosition = (int) ((Map.Entry)it.next()).getValue();
+            moveStartPosition = (int) ((Map.Entry)it.next()).getKey();
             Move currentMove = performMove(moveStartPosition, board);
             scoreAfterMove = currentMove.fruitsConsumed * currentMove.fruitsConsumed * (playerTurn) + score;
             currentScore = playTurn(-playerTurn, gravitateMatrix(currentMove.board),   // Recursive call for children
@@ -233,6 +260,7 @@ public class homework {
                     temp = (int) ((Map.Entry) it.next()).getKey();
                     break;
                 }
+                // Prune Lookup map for generate Possible Moves(board)
                 TreeMap<Integer, Integer>  prunedPossibleMoveMap = (TreeMap<Integer, Integer>) ObjectCloner.deepCopy(possibleMoveMap);
                 prunedPossibleMoveMap.tailMap(temp).clear();
                 generatedPossibleMoves.put(board, prunedPossibleMoveMap);
@@ -283,7 +311,6 @@ public class homework {
         PrintStream streamForTimeFile = new PrintStream(new FileOutputStream(absolutePath + "/time.txt", true));
         PrintStream streamForScoreFile = new PrintStream(new FileOutputStream(absolutePath + "/score.txt", true));
         System.setOut(printStreamForOutputFile);
-        //System.out.println(boardDimension + "\n" + typesOfFruits + "\n" + time);
         Move bestMove = performMove(position, board);
         printMatrix(gravitateMatrix(bestMove.board));
         System.setOut(streamForScoreFile);

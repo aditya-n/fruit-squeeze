@@ -77,7 +77,11 @@ public class TestCases{
         String board = "";
         for(int i=0; i<hw.boardDimension; i++)
             board += reader.readLine();
-        move = hw.playTurn(-1, board, 0, 7, Integer.MIN_VALUE, Integer.MAX_VALUE);
+        move = hw.playTurn(-1, board, 0, 6, Integer.MIN_VALUE, Integer.MAX_VALUE);
+        hw.leafCount = 0;
+        hw.cuts = 0;
+        hw.recursiveCalls = 0;
+        move = hw.playTurn(1, board, 0, 7, Integer.MIN_VALUE, Integer.MAX_VALUE);
         //move = hw.playTurn(1, board, 0, 15, Integer.MIN_VALUE, Integer.MAX_VALUE);
         System.out.println("\n Leaf count is " + hw.leafCount + " Cuts " + hw.cuts);
         System.out.println(" \n Move" + move.position + " score " + move.score + " recursive calls " + hw.recursiveCalls);
