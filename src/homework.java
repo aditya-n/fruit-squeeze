@@ -79,9 +79,10 @@ public class homework {
 
     public static final int MAX = 1, MIN = -1;
     String board; // The main board denoting all the fruits
-    int boardDimension, typesOfFruits, boardSize, leafCount = 0, cuts = 0, temp = 0;
+    int boardDimension, typesOfFruits, boardSize, leafCount = 0, cuts = 0, temp = 0, recursiveCalls = 0;
     public HashMap<Move, Move> moveMap;
     public HashMap<String, TreeMap> generatedPossibleMoves;
+    public HashMap<String, String> gravitatedMatrices;
     String time;
 
     public int addAdjacentPositions(Queue<Integer> possibleNodes, HashSet<Integer> visitedNodes, int currentPosition, StringBuilder boardBuilder) {
@@ -147,6 +148,8 @@ public class homework {
     }
 
     public String gravitateMatrix(String board) {
+        if(gravitatedMatrices.containsKey(board))
+            return gravitatedMatrices.get(board);
         String row, newBoard = "";
         char[] emptySpaces;
         int emptySpaceCount;
@@ -160,13 +163,16 @@ public class homework {
             row = new String(emptySpaces) + row;
             newBoard += row;
         }
-        return transposeMatrix(newBoard);
+        String transposedMatrix = transposeMatrix(newBoard);
+        gravitatedMatrices.put(board, transposedMatrix);
+        return transposedMatrix;
     }
 
     public void initializeDataMembers() {
         boardSize = boardDimension * boardDimension;
         moveMap = new HashMap<>();
         generatedPossibleMoves = new HashMap<>();
+        gravitatedMatrices = new HashMap<>();
     }
 
     public Move performMove(int startPosition, String board) {
@@ -194,7 +200,8 @@ public class homework {
         return resultedMove;
     }
 
-    public MoveToPassUpstream playTurn(int playerTurn, String board, int score, int depth, int alpha, int beta) {
+    public MoveToPassUpstream playTurn(int playerTurn, String board, int score, int depth, int alpha, int beta) throws Exception {
+        recursiveCalls++;
         int moveStartPosition;
         TreeMap<Integer, Integer> possibleMoveMap = generatePossibleMoves(board);
         if (possibleMoveMap.isEmpty() || depth == 0) {  // Max depth reached or board is all *.
@@ -210,6 +217,8 @@ public class homework {
             scoreAfterMove = currentMove.fruitsConsumed * currentMove.fruitsConsumed * (playerTurn) + score;
             currentScore = playTurn(-playerTurn, gravitateMatrix(currentMove.board),   // Recursive call for children
                     scoreAfterMove, depth - 1, alpha, beta).score;
+
+            //Updating Best Score
             if (shouldUpdateBestScore(currentScore, alpha, beta, playerTurn)) {
                 bestMove = moveStartPosition;
                 if (playerTurn == 1)
@@ -217,12 +226,15 @@ public class homework {
                 else
                     beta = currentScore;
             }
-            if (alpha >= beta) { // PRUNE the rest in the for loop and in possibleMoveMap
+            // PRUNE the rest in the for loop and in possibleMoveMap
+            if (alpha >= beta) {
                 while(it.hasNext()) {
                     temp = (int) ((Map.Entry) it.next()).getKey();
                     break;
                 }
-                possibleMoveMap.tailMap(temp).clear();
+                TreeMap<Integer, Integer>  prunedPossibleMoveMap = (TreeMap<Integer, Integer>) ObjectCloner.deepCopy(possibleMoveMap);
+                prunedPossibleMoveMap.tailMap(temp).clear();
+                generatedPossibleMoves.put(board, prunedPossibleMoveMap);
                 cuts++;
                 return new MoveToPassUpstream(bestMove, playerTurn == 1 ? beta : alpha);
             }

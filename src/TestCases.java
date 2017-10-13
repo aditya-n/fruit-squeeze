@@ -51,7 +51,7 @@ public class TestCases{
     }
 
     @Test
-    public void checkTreeGeneration(){
+    public void checkTreeGeneration() throws Exception {
         hw.boardDimension = 2;
         hw.boardSize = 4;
         //move = hw.playTurn(1, "0121", 0, 1, Integer.MIN_VALUE, Integer.MAX_VALUE);
@@ -69,7 +69,7 @@ public class TestCases{
     }
 
     @Test
-    public void checkTreeForInput() throws IOException {
+    public void checkTreeForInput() throws Exception {
         hw.boardDimension = Integer.parseInt(reader.readLine());
         hw.boardSize = hw.boardDimension * hw.boardDimension;
         int dummy = Integer.parseInt(reader.readLine());
@@ -77,10 +77,10 @@ public class TestCases{
         String board = "";
         for(int i=0; i<hw.boardDimension; i++)
             board += reader.readLine();
-        move = hw.playTurn(1, board, 0, 40, Integer.MIN_VALUE, Integer.MAX_VALUE);
+        move = hw.playTurn(1, board, 0, 30, Integer.MIN_VALUE, Integer.MAX_VALUE);
         //move = hw.playTurn(1, board, 0, 0, Integer.MIN_VALUE, Integer.MAX_VALUE);
         System.out.println("\n Leaf count is " + hw.leafCount + " Cuts " + hw.cuts);
-        System.out.println(" \n Move" + move.position + " " + move.score);
+        System.out.println(" \n Move" + move.position + " score " + move.score + " recursive calls " + hw.recursiveCalls);
         //assertEquals(47, (int)move.position);
     }
 
