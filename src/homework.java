@@ -78,12 +78,12 @@ class ObjectCloner {
 public class homework {
 
     public static final int MAX = 1, MIN = -1;
-    String board; // The main board denoting all the fruits
     int boardDimension, typesOfFruits, boardSize, leafCount = 0, cuts = 0, temp = 0, recursiveCalls = 0;
     public HashMap<Move, Move> moveMap;
     public HashMap<String, TreeMap> generatedPossibleMoves;
     public HashMap<String, String> gravitatedMatrices;
-    String time;
+    String time, absolutePath, board; // The main board denoting all the fruits;
+    double currentTime;
 
     public int addAdjacentPositions(Queue<Integer> possibleNodes, HashSet<Integer> visitedNodes, int currentPosition, StringBuilder boardBuilder) {
         int left, right, up, down, boardSize = boardDimension * boardDimension, score = 0;
@@ -128,7 +128,7 @@ public class homework {
                 if (board.charAt(i * boardDimension + j) != '*') {
                     Move move = performMove(i * boardDimension + j, board);
                     board = move.board;
-                    possibleMoveMap.put(move.fruitsConsumed, i * boardDimension + j);
+                    possibleMoveMap.put(move.fruitsConsumed, i * boardDimension + j); //TODO wrong map configuration entries get overwritten
                 }
             }
         generatedPossibleMoves.put(board, possibleMoveMap);
@@ -136,7 +136,7 @@ public class homework {
     }
 
     public void getInputs() throws IOException {
-        String absolutePath = new File("").getAbsolutePath();
+        absolutePath = new File("").getAbsolutePath();
         BufferedReader bufferedReader = new BufferedReader(new FileReader(absolutePath + "/input.txt"));
         boardDimension = Integer.parseInt(bufferedReader.readLine());
         typesOfFruits = Integer.parseInt(bufferedReader.readLine());
@@ -169,6 +169,7 @@ public class homework {
     }
 
     public void initializeDataMembers() {
+        currentTime = System.currentTimeMillis();
         boardSize = boardDimension * boardDimension;
         moveMap = new HashMap<>();
         generatedPossibleMoves = new HashMap<>();
@@ -180,22 +181,22 @@ public class homework {
         if (moveMap.containsKey(move))
             return moveMap.get(move);
 
-        int score = 0;
+        int fruitsConsumed = 0;
         StringBuilder boardBuilder = new StringBuilder(board);
         Queue<Integer> possibleNodes = new ArrayDeque<>();
         HashSet<Integer> visitedNodes = new HashSet<>();
 
         possibleNodes.add(startPosition);
-        score++;
+        fruitsConsumed++;
         visitedNodes.add(startPosition);
         int currentPosition;
         while (!possibleNodes.isEmpty()) {
             currentPosition = possibleNodes.element();
-            score += addAdjacentPositions(possibleNodes, visitedNodes, currentPosition, boardBuilder);
+            fruitsConsumed += addAdjacentPositions(possibleNodes, visitedNodes, currentPosition, boardBuilder);
             boardBuilder.setCharAt(currentPosition, '*');
             possibleNodes.remove();
         }
-        resultedMove = new Move(startPosition, score, boardBuilder.toString());
+        resultedMove = new Move(startPosition, fruitsConsumed, boardBuilder.toString());
         moveMap.put(move, resultedMove);
         return resultedMove;
     }
@@ -276,8 +277,29 @@ public class homework {
         return String.valueOf(stringArray);
     }
 
-    public static void main(String[] args) throws IOException {
+
+    private void printOutput(int position) throws FileNotFoundException {
+        PrintStream printStreamForOutputFile = new PrintStream(new FileOutputStream(absolutePath + "/output.txt"));
+        PrintStream streamForTimeFile = new PrintStream(new FileOutputStream(absolutePath + "/time.txt", true));
+        PrintStream streamForScoreFile = new PrintStream(new FileOutputStream(absolutePath + "/score.txt", true));
+        System.setOut(printStreamForOutputFile);
+        //System.out.println(boardDimension + "\n" + typesOfFruits + "\n" + time);
+        Move bestMove = performMove(position, board);
+        printMatrix(gravitateMatrix(bestMove.board));
+        System.setOut(streamForScoreFile);
+        System.out.print(bestMove.fruitsConsumed * bestMove.fruitsConsumed +"  ");
+        System.setOut(streamForTimeFile);
+        System.out.print(System.currentTimeMillis() - currentTime +"  ");
+    }
+
+    public static void main(String[] args) throws Exception {
         homework hw = new homework();
         hw.getInputs();
+        hw.initializeDataMembers();
+        MoveToPassUpstream move = hw.playTurn(MAX, hw.board, 0, Integer.parseInt(args[0]) * 2, Integer.MIN_VALUE, Integer.MAX_VALUE);
+        hw.printOutput(move.position);
+        //System.out.println("\n Leaf count is " + hw.leafCount + " Cuts " + hw.cuts);
+        //System.out.println(" \n Move" + move.position + " score " + move.score + " recursive calls " + hw.recursiveCalls);
     }
+
 }
