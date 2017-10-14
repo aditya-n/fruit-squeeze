@@ -20,6 +20,8 @@ class ValueComparator implements Comparator<Integer>, Serializable{
     }
     @Override
     public int compare(Integer x, Integer y){
+        if(this.hashMap.get(x) == null || this.hashMap.get(y) == null)
+            return 1;
         if(this.hashMap.get(x) <= this.hashMap.get(y))
             return 1;
         else
@@ -323,10 +325,10 @@ public class homework {
         homework hw = new homework();
         hw.getInputs();
         hw.initializeDataMembers();
-        MoveToPassUpstream move = hw.playTurn(MAX, hw.board, 0, Integer.parseInt(args[0]) * 2, Integer.MIN_VALUE, Integer.MAX_VALUE);
+        MoveToPassUpstream move = hw.playTurn(MAX, hw.board, 0, 7, Integer.MIN_VALUE, Integer.MAX_VALUE);
         hw.printOutput(move.position);
-        //System.out.println("\n Leaf count is " + hw.leafCount + " Cuts " + hw.cuts);
-        //System.out.println(" \n Move" + move.position + " score " + move.score + " recursive calls " + hw.recursiveCalls);
+        System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out)));
+        System.out.println("\n Leaf count is " + hw.leafCount + " Cuts " + hw.cuts);
+        System.out.println(" \n Move" + move.position + " score " + move.score + " recursive calls " + hw.recursiveCalls);
     }
-
 }

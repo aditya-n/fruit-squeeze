@@ -45,9 +45,9 @@ public class TestCases{
         assertEquals("*121", hw.gravitateMatrix(board));
         hw.boardDimension = 3;
         board = "*******0*";
-        assertEquals((Arrays.asList(new Integer[]{7})), hw.generatePossibleMoves(board));
+        //assertEquals((Arrays.asList(new Integer[]{7})), hw.generatePossibleMoves(board));
         board = "*11133133";
-        assertEquals((Arrays.asList(new Integer[]{1, 3, 4})), hw.generatePossibleMoves(board));
+        //assertEquals((Arrays.asList(new Integer[]{1, 3, 4})), hw.generatePossibleMoves(board));
     }
 
     @Test
