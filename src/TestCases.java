@@ -70,6 +70,7 @@ public class TestCases{
 
     @Test
     public void checkTreeForInput() throws Exception {
+        String board1 = "****";
         hw.boardDimension = Integer.parseInt(reader.readLine());
         hw.boardSize = hw.boardDimension * hw.boardDimension;
         int dummy = Integer.parseInt(reader.readLine());

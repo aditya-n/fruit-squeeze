@@ -234,20 +234,26 @@ public class homework {
         recursiveCalls++;
         int moveStartPosition;
         TreeMap<Integer, Integer> possibleMoveMap = generatePossibleMoves(board);
-        if (possibleMoveMap.isEmpty() || depth == 0) {  // Max depth reached or board is all *.
+        /*if (possibleMoveMap.isEmpty() || depth == 0) {  // Max depth reached or board is all *.
             leafCount++;
             return new MoveToPassUpstream(null, score);
         }
+        */
 
-        Integer currentScore, scoreAfterMove, bestMove = null;
+        Integer currentScore = 0, scoreAfterMove, bestMove = null;
         Iterator<Map.Entry<Integer, Integer>> it = possibleMoveMap.entrySet().iterator();
         while(it.hasNext()) {// for all possible moves on current board
             moveStartPosition = (int) ((Map.Entry)it.next()).getKey();
             Move currentMove = performMove(moveStartPosition, board);
             scoreAfterMove = currentMove.fruitsConsumed * currentMove.fruitsConsumed * (playerTurn) + score;
-            currentScore = playTurn(-playerTurn, gravitateMatrix(currentMove.board),   // Recursive call for children
+            String boardAfterCurrentMove = gravitateMatrix(currentMove.board);
+            if(!gameOver(depth, boardAfterCurrentMove))
+                currentScore = playTurn(-playerTurn, gravitateMatrix(currentMove.board),   // Recursive call for children
                     scoreAfterMove, depth - 1, alpha, beta).score;
-
+            else {
+                leafCount++;
+                currentScore = scoreAfterMove;          // GAME OVER. Current Node is a leaf. Return back and not calling children
+            }
             //Updating Best Score
             if (shouldUpdateBestScore(currentScore, alpha, beta, playerTurn)) {
                 bestMove = moveStartPosition;
@@ -271,6 +277,14 @@ public class homework {
             }
         }
         return new MoveToPassUpstream(bestMove, playerTurn == 1 ? alpha : beta);
+    }
+
+    private boolean gameOver(int depth, String board) {
+        if(depth == 1)
+            return true;
+        if(board.replace("*", "").length() == 0)
+            return true;
+        return false;
     }
 
     public void printMatrix(String board) {
