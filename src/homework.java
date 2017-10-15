@@ -99,7 +99,8 @@ public class homework {
     public HashMap<String, TreeMap> generatedPossibleMoves;
     public HashMap<String, String> gravitatedMatrices;
     String time, absolutePath, board; // The main board denoting all the fruits;
-    double currentTime;
+    long startTime;
+    int depth[];
 
     public int addAdjacentPositions(Queue<Integer> possibleNodes, HashSet<Integer> visitedNodes, int currentPosition, StringBuilder boardBuilder) {
         int left, right, up, down, boardSize = boardDimension * boardDimension, score = 0;
@@ -198,11 +199,12 @@ public class homework {
     }
 
     public void initializeDataMembers() {
-        currentTime = System.currentTimeMillis();
+        startTime = System.currentTimeMillis();
         boardSize = boardDimension * boardDimension;
         moveMap = new HashMap<>();
         generatedPossibleMoves = new HashMap<>();
         gravitatedMatrices = new HashMap<>();
+        depth = new int[100];
     }
 
     public Move performMove(int startPosition, String board) {
@@ -231,6 +233,9 @@ public class homework {
     }
 
     public MoveToPassUpstream playTurn(int playerTurn, String board, int score, int depth, int alpha, int beta) throws Exception {
+        if(timeReached(System.currentTimeMillis()))
+            return new MoveToPassUpstream(null, score);
+        this.depth[depth]++;
         recursiveCalls++;
         int moveStartPosition;
         TreeMap<Integer, Integer> possibleMoveMap = generatePossibleMoves(board);
@@ -279,6 +284,14 @@ public class homework {
         return new MoveToPassUpstream(bestMove, playerTurn == 1 ? alpha : beta);
     }
 
+    private boolean timeReached(long currentTime) {
+        if(currentTime - startTime > 10000) {
+            System.out.println("\nTime :" + currentTime + "-" + startTime);
+            return true;
+        }
+        return false;
+    }
+
     private boolean gameOver(int depth, String board) {
         if(depth == 1)
             return true;
@@ -322,27 +335,32 @@ public class homework {
     }
 
 
-    private void printOutput(int position) throws FileNotFoundException {
+    public void printOutput(int position) throws FileNotFoundException {
         PrintStream printStreamForOutputFile = new PrintStream(new FileOutputStream(absolutePath + "/output.txt"));
         PrintStream streamForTimeFile = new PrintStream(new FileOutputStream(absolutePath + "/time.txt", true));
-        PrintStream streamForScoreFile = new PrintStream(new FileOutputStream(absolutePath + "/score.txt", true));
+        PrintStream streamForScoreFile = new PrintStream(new FileOutputStream(absolutePath + "/score.txt"));
         System.setOut(printStreamForOutputFile);
         Move bestMove = performMove(position, board);
+        System.out.println((char)(position%boardDimension + 65) +""+ (position/boardDimension + 1));
         printMatrix(gravitateMatrix(bestMove.board));
         System.setOut(streamForScoreFile);
-        System.out.print(bestMove.fruitsConsumed * bestMove.fruitsConsumed +"  ");
+        System.out.print(bestMove.fruitsConsumed +"  ");
         System.setOut(streamForTimeFile);
-        System.out.print(System.currentTimeMillis() - currentTime +"  ");
+        //System.out.print(System.currentTimeMillis() - currentTime +"  ");
     }
 
     public static void main(String[] args) throws Exception {
         homework hw = new homework();
         hw.getInputs();
         hw.initializeDataMembers();
-        MoveToPassUpstream move = hw.playTurn(MAX, hw.board, 0, 7, Integer.MIN_VALUE, Integer.MAX_VALUE);
+        int possibleMoves = hw.generatePossibleMoves(hw.board).size();
+        MoveToPassUpstream move = hw.playTurn(MAX, hw.board, 0, 3, Integer.MIN_VALUE, Integer.MAX_VALUE);
         hw.printOutput(move.position);
         System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out)));
         System.out.println("\n Leaf count is " + hw.leafCount + " Cuts " + hw.cuts);
-        System.out.println(" \n Move" + move.position + " score " + move.score + " recursive calls " + hw.recursiveCalls);
+        System.out.println(" \n Move Position" + move.position + " score " + move.score + " recursive calls " + hw.recursiveCalls);
+        //for(int i=4; i>0; i--){
+        //    System.out.println(hw.depth[i] + "  ");
+        //}
     }
 }

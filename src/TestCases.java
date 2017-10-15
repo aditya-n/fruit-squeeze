@@ -70,24 +70,17 @@ public class TestCases{
 
     @Test
     public void checkTreeForInput() throws Exception {
-        String board1 = "****";
-        hw.boardDimension = Integer.parseInt(reader.readLine());
-        hw.boardSize = hw.boardDimension * hw.boardDimension;
-        int dummy = Integer.parseInt(reader.readLine());
-        double time = Double.parseDouble(reader.readLine());
-        String board = "";
-        for(int i=0; i<hw.boardDimension; i++)
-            board += reader.readLine();
-        move = hw.playTurn(-1, board, 0, 6, Integer.MIN_VALUE, Integer.MAX_VALUE);
+        hw.getInputs();
+        hw.initializeDataMembers();
+        //move = hw.playTurn(-1, board, 0, 6, Integer.MIN_VALUE, Integer.MAX_VALUE);
         hw.leafCount = 0;
         hw.cuts = 0;
         hw.recursiveCalls = 0;
-        move = hw.playTurn(1, board, 0, 7, Integer.MIN_VALUE, Integer.MAX_VALUE);
-        //move = hw.playTurn(1, board, 0, 15, Integer.MIN_VALUE, Integer.MAX_VALUE);
+        int pm = hw.generatePossibleMoves(hw.board).size();
+        move = hw.playTurn(1, hw.board, 0, 3, Integer.MIN_VALUE, Integer.MAX_VALUE);
         System.out.println("\n Leaf count is " + hw.leafCount + " Cuts " + hw.cuts);
         System.out.println(" \n Move" + move.position + " score " + move.score + " recursive calls " + hw.recursiveCalls);
-        //assertEquals(47, (int)move.position);
+        System.out.println((char)(move.position%hw.boardDimension + 65) +""+ (move.position/hw.boardDimension + 1));
+        //hw.printOutput(move.position);
     }
-
-
 }
