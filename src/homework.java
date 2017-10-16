@@ -30,7 +30,7 @@ class ValueComparator implements Comparator<Integer>, Serializable{
 }
 
 class Move {
-    String board = "?";  //TODO optimise String comparison in equals by storing string as hash(string)
+    String board = "?";
     int position = -1, fruitsConsumed = -1;
 
     @Override
@@ -99,7 +99,7 @@ public class homework {
     public HashMap<String, TreeMap> generatedPossibleMoves;
     public HashMap<String, String> gravitatedMatrices;
     String time, absolutePath, board; // The main board denoting all the fruits;
-    long startTime;
+    long startTime, timeForThisTurn;
     int depth[];
 
     public int addAdjacentPositions(Queue<Integer> possibleNodes, HashSet<Integer> visitedNodes, int currentPosition, StringBuilder boardBuilder) {
@@ -178,8 +178,8 @@ public class homework {
     }
 
     public String gravitateMatrix(String board) {
-        if(gravitatedMatrices.containsKey(board))
-            return gravitatedMatrices.get(board);
+        //if(gravitatedMatrices.containsKey(board))
+            //return gravitatedMatrices.get(board);
         String row, newBoard = "";
         char[] emptySpaces;
         int emptySpaceCount;
@@ -194,7 +194,7 @@ public class homework {
             newBoard += row;
         }
         String transposedMatrix = transposeMatrix(newBoard);
-        gravitatedMatrices.put(board, transposedMatrix);
+        //gravitatedMatrices.put(board, transposedMatrix);
         return transposedMatrix;
     }
 
@@ -205,6 +205,7 @@ public class homework {
         generatedPossibleMoves = new HashMap<>();
         gravitatedMatrices = new HashMap<>();
         depth = new int[100];
+        timeForThisTurn = (long)(Double.parseDouble(time) * 2)/generatePossibleMoves(board).size();
     }
 
     public Move performMove(int startPosition, String board) {
@@ -235,17 +236,11 @@ public class homework {
     public MoveToPassUpstream playTurn(int playerTurn, String board, int score, int depth, int alpha, int beta) throws Exception {
         if(timeReached(System.currentTimeMillis()))
             return new MoveToPassUpstream(null, score);
-        this.depth[depth]++;
+        //this.depth[depth]++;
         recursiveCalls++;
         int moveStartPosition;
         TreeMap<Integer, Integer> possibleMoveMap = generatePossibleMoves(board);
-        /*if (possibleMoveMap.isEmpty() || depth == 0) {  // Max depth reached or board is all *.
-            leafCount++;
-            return new MoveToPassUpstream(null, score);
-        }
-        */
-
-        Integer currentScore = 0, scoreAfterMove, bestMove = null;
+        int currentScore = 0, scoreAfterMove, bestMove = 0;
         Iterator<Map.Entry<Integer, Integer>> it = possibleMoveMap.entrySet().iterator();
         while(it.hasNext()) {// for all possible moves on current board
             moveStartPosition = (int) ((Map.Entry)it.next()).getKey();
@@ -285,8 +280,8 @@ public class homework {
     }
 
     private boolean timeReached(long currentTime) {
-        if(currentTime - startTime > 10000) {
-            System.out.println("\nTime :" + currentTime + "-" + startTime);
+        if(currentTime - startTime > (timeForThisTurn*1000)) {
+            //System.out.println("\nTime :" + currentTime + "-" + startTime);
             return true;
         }
         return false;
@@ -346,7 +341,6 @@ public class homework {
         System.setOut(streamForScoreFile);
         System.out.print(bestMove.fruitsConsumed +"  ");
         System.setOut(streamForTimeFile);
-        //System.out.print(System.currentTimeMillis() - currentTime +"  ");
     }
 
     public static void main(String[] args) throws Exception {
@@ -354,13 +348,11 @@ public class homework {
         hw.getInputs();
         hw.initializeDataMembers();
         int possibleMoves = hw.generatePossibleMoves(hw.board).size();
-        MoveToPassUpstream move = hw.playTurn(MAX, hw.board, 0, 3, Integer.MIN_VALUE, Integer.MAX_VALUE);
+        int depth = (int)(possibleMoves/(hw.timeForThisTurn*2));
+        MoveToPassUpstream move = hw.playTurn(MAX, hw.board, 0, 6, Integer.MIN_VALUE, Integer.MAX_VALUE);
         hw.printOutput(move.position);
         System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out)));
         System.out.println("\n Leaf count is " + hw.leafCount + " Cuts " + hw.cuts);
         System.out.println(" \n Move Position" + move.position + " score " + move.score + " recursive calls " + hw.recursiveCalls);
-        //for(int i=4; i>0; i--){
-        //    System.out.println(hw.depth[i] + "  ");
-        //}
     }
 }

@@ -17,12 +17,13 @@ public class TestCases{
     MoveToPassUpstream move;
 
     @BeforeEach
-    void setUp() throws FileNotFoundException {
+    void setUp() throws IOException {
         hw = new homework();
         String path = new File("").getAbsolutePath();
         reader = new BufferedReader(new FileReader(path + "/input.txt"));
         hw.boardDimension = 4;
         board = "123*12*456785*78";
+        hw.getInputs();
         hw.initializeDataMembers();
     }
     @Test
@@ -70,14 +71,13 @@ public class TestCases{
 
     @Test
     public void checkTreeForInput() throws Exception {
-        hw.getInputs();
-        hw.initializeDataMembers();
-        //move = hw.playTurn(-1, board, 0, 6, Integer.MIN_VALUE, Integer.MAX_VALUE);
         hw.leafCount = 0;
         hw.cuts = 0;
         hw.recursiveCalls = 0;
-        int pm = hw.generatePossibleMoves(hw.board).size();
-        move = hw.playTurn(1, hw.board, 0, 3, Integer.MIN_VALUE, Integer.MAX_VALUE);
+        int possibleMoves = hw.generatePossibleMoves(hw.board).size();
+        System.out.println("\n Generated possible moves " + possibleMoves);
+        int depth = (int)(possibleMoves/(hw.timeForThisTurn*2));
+        move = hw.playTurn(hw.MAX, hw.board, 0, 6, Integer.MIN_VALUE, Integer.MAX_VALUE);
         System.out.println("\n Leaf count is " + hw.leafCount + " Cuts " + hw.cuts);
         System.out.println(" \n Move" + move.position + " score " + move.score + " recursive calls " + hw.recursiveCalls);
         System.out.println((char)(move.position%hw.boardDimension + 65) +""+ (move.position/hw.boardDimension + 1));
