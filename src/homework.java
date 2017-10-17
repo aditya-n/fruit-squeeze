@@ -205,7 +205,7 @@ public class homework {
         generatedPossibleMoves = new HashMap<>();
         gravitatedMatrices = new HashMap<>();
         depth = new int[100];
-        timeForThisTurn = (long)(Double.parseDouble(time) * 2)/generatePossibleMoves(board).size();
+        timeForThisTurn = (long)Double.parseDouble(time);
     }
 
     public Move performMove(int startPosition, String board) {
@@ -234,8 +234,10 @@ public class homework {
     }
 
     public MoveToPassUpstream playTurn(int playerTurn, String board, int score, int depth, int alpha, int beta) throws Exception {
-        //if(timeReached(System.currentTimeMillis()))
-          //  return new MoveToPassUpstream(null, score);
+        if(timeReached(System.currentTimeMillis())) {
+            System.out.println("\nTime Reached");
+            return new MoveToPassUpstream(null, score);
+        }
         //this.depth[depth]++;
         recursiveCalls++;
         int moveStartPosition;
@@ -333,13 +335,13 @@ public class homework {
     public void printOutput(int position) throws FileNotFoundException {
         PrintStream printStreamForOutputFile = new PrintStream(new FileOutputStream(absolutePath + "/output.txt"));
         //PrintStream streamForTimeFile = new PrintStream(new FileOutputStream(absolutePath + "/time.txt", true));
-        //PrintStream streamForScoreFile = new PrintStream(new FileOutputStream(absolutePath + "/score.txt"));
+        PrintStream streamForScoreFile = new PrintStream(new FileOutputStream(absolutePath + "/score.txt"));
         System.setOut(printStreamForOutputFile);
         Move bestMove = performMove(position, board);
         System.out.println((char)(position%boardDimension + 65) +""+ (position/boardDimension + 1));
         printMatrix(gravitateMatrix(bestMove.board));
-        //System.setOut(streamForScoreFile);
-        //System.out.print(bestMove.fruitsConsumed +"  ");
+        System.setOut(streamForScoreFile);
+        System.out.print(bestMove.fruitsConsumed +"  ");
         //System.setOut(streamForTimeFile);
     }
 
@@ -355,7 +357,7 @@ public class homework {
             depth = 2;
         if(timePerMove < 0.05)
             depth = 1;
-        MoveToPassUpstream move = hw.playTurn(MAX, hw.board, 0, depth, Integer.MIN_VALUE, Integer.MAX_VALUE);
+        MoveToPassUpstream move = hw.playTurn(MAX, hw.board, 0, 3, Integer.MIN_VALUE, Integer.MAX_VALUE);
         hw.printOutput(move.position);
         //System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out)));
         //System.out.println("\n Leaf count is " + hw.leafCount + " Cuts " + hw.cuts);
