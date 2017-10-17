@@ -146,7 +146,7 @@ public class homework {
                 if (board.charAt(i * boardDimension + j) != '*') {
                     Move move = performMove(i * boardDimension + j, board);
                     board = move.board;
-                    //possibleMoveMap.put(move.fruitsConsumed, i * boardDimension + j); //TODO wrong map configuration entries get overwritten
+                    //possibleMoveMap.put(move.fruitsConsumed, i * boardDimension + j); //
                     possibleMoveMap.put(i * boardDimension + j, move.fruitsConsumed);
                 }
             }
@@ -234,8 +234,8 @@ public class homework {
     }
 
     public MoveToPassUpstream playTurn(int playerTurn, String board, int score, int depth, int alpha, int beta) throws Exception {
-        if(timeReached(System.currentTimeMillis()))
-            return new MoveToPassUpstream(null, score);
+        //if(timeReached(System.currentTimeMillis()))
+          //  return new MoveToPassUpstream(null, score);
         //this.depth[depth]++;
         recursiveCalls++;
         int moveStartPosition;
@@ -332,15 +332,15 @@ public class homework {
 
     public void printOutput(int position) throws FileNotFoundException {
         PrintStream printStreamForOutputFile = new PrintStream(new FileOutputStream(absolutePath + "/output.txt"));
-        PrintStream streamForTimeFile = new PrintStream(new FileOutputStream(absolutePath + "/time.txt", true));
-        PrintStream streamForScoreFile = new PrintStream(new FileOutputStream(absolutePath + "/score.txt"));
+        //PrintStream streamForTimeFile = new PrintStream(new FileOutputStream(absolutePath + "/time.txt", true));
+        //PrintStream streamForScoreFile = new PrintStream(new FileOutputStream(absolutePath + "/score.txt"));
         System.setOut(printStreamForOutputFile);
         Move bestMove = performMove(position, board);
         System.out.println((char)(position%boardDimension + 65) +""+ (position/boardDimension + 1));
         printMatrix(gravitateMatrix(bestMove.board));
-        System.setOut(streamForScoreFile);
-        System.out.print(bestMove.fruitsConsumed +"  ");
-        System.setOut(streamForTimeFile);
+        //System.setOut(streamForScoreFile);
+        //System.out.print(bestMove.fruitsConsumed +"  ");
+        //System.setOut(streamForTimeFile);
     }
 
     public static void main(String[] args) throws Exception {
@@ -348,11 +348,17 @@ public class homework {
         hw.getInputs();
         hw.initializeDataMembers();
         int possibleMoves = hw.generatePossibleMoves(hw.board).size();
-        int depth = (int)(possibleMoves/(hw.timeForThisTurn*2));
-        MoveToPassUpstream move = hw.playTurn(MAX, hw.board, 0, 6, Integer.MIN_VALUE, Integer.MAX_VALUE);
+        // System.out.println("\n Generated possible moves " + possibleMoves);
+        double timePerMove = (Double.parseDouble(hw.time) * 2) / possibleMoves;
+        int depth = possibleMoves > 35 ? 3:6;
+        if(timePerMove < 0.1)
+            depth = 2;
+        if(timePerMove < 0.05)
+            depth = 1;
+        MoveToPassUpstream move = hw.playTurn(MAX, hw.board, 0, depth, Integer.MIN_VALUE, Integer.MAX_VALUE);
         hw.printOutput(move.position);
-        System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out)));
-        System.out.println("\n Leaf count is " + hw.leafCount + " Cuts " + hw.cuts);
-        System.out.println(" \n Move Position" + move.position + " score " + move.score + " recursive calls " + hw.recursiveCalls);
+        //System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out)));
+        //System.out.println("\n Leaf count is " + hw.leafCount + " Cuts " + hw.cuts);
+        //System.out.println(" \n Move Position" + move.position + " score " + move.score + " recursive calls " + hw.recursiveCalls);
     }
 }

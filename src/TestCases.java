@@ -76,8 +76,13 @@ public class TestCases{
         hw.recursiveCalls = 0;
         int possibleMoves = hw.generatePossibleMoves(hw.board).size();
         System.out.println("\n Generated possible moves " + possibleMoves);
-        int depth = (int)(possibleMoves/(hw.timeForThisTurn*2));
-        move = hw.playTurn(hw.MAX, hw.board, 0, 6, Integer.MIN_VALUE, Integer.MAX_VALUE);
+        double timePerMove = (Double.parseDouble(hw.time) * 2) / possibleMoves;
+        int depth = possibleMoves > 35 ? 3:6;
+        if(timePerMove < 0.1)
+            depth = 2;
+        if(timePerMove < 0.05)
+            depth = 1;
+        move = hw.playTurn(hw.MAX, hw.board, 0, depth, Integer.MIN_VALUE, Integer.MAX_VALUE);
         System.out.println("\n Leaf count is " + hw.leafCount + " Cuts " + hw.cuts);
         System.out.println(" \n Move" + move.position + " score " + move.score + " recursive calls " + hw.recursiveCalls);
         System.out.println((char)(move.position%hw.boardDimension + 65) +""+ (move.position/hw.boardDimension + 1));
