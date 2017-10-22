@@ -235,7 +235,7 @@ public class homework {
 
     public MoveToPassUpstream playTurn(int playerTurn, String board, int score, int depth, int alpha, int beta) throws Exception {
         if(timeReached(System.currentTimeMillis())) {
-            System.out.println("\nTime Reached");
+            //System.out.println("\nTime Reached");
             return new MoveToPassUpstream(null, score);
         }
         //this.depth[depth]++;
@@ -282,7 +282,7 @@ public class homework {
     }
 
     private boolean timeReached(long currentTime) {
-        if(currentTime - startTime > (timeForThisTurn*1000)) {
+        if(currentTime - startTime > (timeForThisTurn*1000 - 200) ) {
             //System.out.println("\nTime :" + currentTime + "-" + startTime);
             return true;
         }
@@ -357,7 +357,7 @@ public class homework {
             depth = 2;
         if(timePerMove < 0.05)
             depth = 1;
-        MoveToPassUpstream move = hw.playTurn(MAX, hw.board, 0, 3, Integer.MIN_VALUE, Integer.MAX_VALUE);
+        MoveToPassUpstream move = hw.playTurn(MAX, hw.board, 0, depth, Integer.MIN_VALUE, Integer.MAX_VALUE);
         hw.printOutput(move.position);
         //System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out)));
         //System.out.println("\n Leaf count is " + hw.leafCount + " Cuts " + hw.cuts);

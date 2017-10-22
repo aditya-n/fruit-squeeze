@@ -82,7 +82,7 @@ public class TestCases{
             depth = 2;
         if(timePerMove < 0.05)
             depth = 1;
-        move = hw.playTurn(hw.MAX, hw.board, 0, 3, Integer.MIN_VALUE, Integer.MAX_VALUE);
+        move = hw.playTurn(hw.MAX, hw.board, 0, depth, Integer.MIN_VALUE, Integer.MAX_VALUE);
         System.out.println("\n Leaf count is " + hw.leafCount + " Cuts " + hw.cuts);
         System.out.println(" \n Move" + move.position + " score " + move.score + " recursive calls " + hw.recursiveCalls);
         System.out.println((char)(move.position%hw.boardDimension + 65) +""+ (move.position/hw.boardDimension + 1));
