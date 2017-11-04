@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 import java.io.*;
 import java.util.Arrays;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static junit.framework.Assert.assertEquals;
 
 /**
  * Created by adi on 03/10/17.
